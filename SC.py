@@ -81,14 +81,83 @@ def s_boxes(l4, r4):
 
     return s0_out + s1_out
 
-def rodada_feistel():
-    pass
+def rodada_feistel(L, R, K, round):
+    EP = [4,  1,  2,  3,  2,  3,  4,  1]
+    extend_R = ""
+    for i in EP:
+        extend_R += R[i-1]
 
-def sdes_encrypt():
-    pass
+    # XOR com a subchave K
+    xored = ""
+    for i in range(8):
+        a = int(extend_R[i])
+        b = int(K[i])
+        c = a ^ b
+        xored += str(c)
+    
+    # Passa pelas S-Boxes e aplica P4
+    s0s1 = s_boxes(xored[:4], xored[4:])
+    perm_s0s1 = perm4(s0s1)
 
-def sdes_decrypt():
-    pass
+    # XOR do resultado com L
+    new_L = ""
+    for i in range(4):
+        a = int(L[i])
+        b = int(perm_s0s1[i])
+        c = a ^ b
+        new_L += str(c)
+
+    # Troca as metades apenas se for a 1ª rodada
+    if round == 1:
+        L, R = R , new_L
+    else:
+        L = new_L # Na 2ª rodada, mantém as metades (sem troca)
+    
+    return L+R
+
+def sdes_encrypt(bloco_de_dados, chave):
+    #print(f"Texto Claro = {bloco_de_dados}")
+    #print(f"Chave = {chave}")
+
+    # Gerar as subchaves
+    K1, K2 = generate_keys(chave)
+
+    # Aplica o IP
+    bits = ip(bloco_de_dados)
+    #print(f"IP no bloco = {bits}")
+
+    # Realiza as Rodadas de Feistel
+    bits = rodada_feistel(bits[:4], bits[4:], K1, 1)
+    #print(f"Resultado da 1 rodada = {bits}")
+    bits = rodada_feistel(bits[:4], bits[4:], K2, 2)
+    #print(f"Resultado da 2 rodada = {bits}")
+
+    # Aplica o IP inverso
+    cypher_text = ip_inverse(bits)
+
+    return cypher_text
+
+def sdes_decrypt(bloco_de_dados_cifrado, chave):
+    #print(f"Texto Cifrado = {bloco_de_dados_cifrado}")
+    #print(f"Chave = {chave}")
+
+    # Gerar as subchaves
+    K2, K1 = generate_keys(chave)
+
+    # Aplica o IP
+    bits = ip(bloco_de_dados_cifrado)
+    #print(f"IP no bloco = {bits}")
+
+    # Realiza as Rodadas de Feistel
+    bits = rodada_feistel(bits[:4], bits[4:], K1, 1)
+    #print(f"Resultado da 1 rodada = {bits}")
+    bits = rodada_feistel(bits[:4], bits[4:], K2, 2)
+    #print(f"Resultado da 2 rodada = {bits}")
+
+    # Aplica o IP inverso
+    decypher_text = ip_inverse(bits)
+
+    return decypher_text
 
 def ecb_encrypt():
     pass
