@@ -116,21 +116,15 @@ def rodada_feistel(L, R, K, round):
     return L+R
 
 def sdes_encrypt(bloco_de_dados, chave):
-    #print(f"Texto Claro = {bloco_de_dados}")
-    #print(f"Chave = {chave}")
-
     # Gerar as subchaves
     K1, K2 = generate_keys(chave)
 
     # Aplica o IP
     bits = ip(bloco_de_dados)
-    #print(f"IP no bloco = {bits}")
 
     # Realiza as Rodadas de Feistel
     bits = rodada_feistel(bits[:4], bits[4:], K1, 1)
-    #print(f"Resultado da 1 rodada = {bits}")
     bits = rodada_feistel(bits[:4], bits[4:], K2, 2)
-    #print(f"Resultado da 2 rodada = {bits}")
 
     # Aplica o IP inverso
     cypher_text = ip_inverse(bits)
@@ -138,21 +132,15 @@ def sdes_encrypt(bloco_de_dados, chave):
     return cypher_text
 
 def sdes_decrypt(bloco_de_dados_cifrado, chave):
-    #print(f"Texto Cifrado = {bloco_de_dados_cifrado}")
-    #print(f"Chave = {chave}")
-
     # Gerar as subchaves
     K2, K1 = generate_keys(chave)
 
     # Aplica o IP
     bits = ip(bloco_de_dados_cifrado)
-    #print(f"IP no bloco = {bits}")
 
     # Realiza as Rodadas de Feistel
     bits = rodada_feistel(bits[:4], bits[4:], K1, 1)
-    #print(f"Resultado da 1 rodada = {bits}")
     bits = rodada_feistel(bits[:4], bits[4:], K2, 2)
-    #print(f"Resultado da 2 rodada = {bits}")
 
     # Aplica o IP inverso
     decypher_text = ip_inverse(bits)
