@@ -159,11 +159,35 @@ def sdes_decrypt(bloco_de_dados_cifrado, chave):
 
     return decypher_text
 
-def ecb_encrypt():
-    pass
+def ecb_encrypt(mensagem, chave):
+    blocks = mensagem.split()
+    cypher_blocks = []
+
+    for bits in blocks:
+        cypher_blocks.append(sdes_encrypt(bits, chave))
+
+    result = " ".join(cypher_blocks)
+    return result
 
 def cbc_encrypt():
     pass
 
 bloco_de_dados = "11010111"
 chave = "1010000010"
+mensagem = "11010111 01101100 10111010 11110000"
+vetor_inicialização = "01010101"
+
+print("Parte 1 --------------")
+print(f"Bloco de dados = {bloco_de_dados}\nChave = {chave}")
+
+cypher_text = sdes_encrypt(bloco_de_dados, chave)
+print(f"Bloco de dados cifrado = {cypher_text}")
+
+decypher_text = sdes_decrypt(cypher_text, chave)
+print(f"Bloco de dados decifrado = {decypher_text}")
+
+print("\nParte 2 --------------")
+print(f"Mensagem = {mensagem}")
+
+cypher_mensage = ecb_encrypt(mensagem, chave)
+print(f"Mensagem cifrada por ECB = {cypher_mensage}")
