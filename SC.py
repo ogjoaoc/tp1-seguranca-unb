@@ -47,6 +47,12 @@ def circular_shift(bits):
 
     return left + right
 
+def get_xor(a, b):
+    result = ""
+    for i in range(len(a)):
+        result += str(int(a[i]) ^ int(b[i]))
+    return result
+
 def generate_keys(chave):
     K = perm10(chave)
     K = circular_shift(K)
@@ -88,12 +94,7 @@ def rodada_feistel(L, R, K, round):
         extend_R += R[i-1]
 
     # XOR com a subchave K
-    xored = ""
-    for i in range(8):
-        a = int(extend_R[i])
-        b = int(K[i])
-        c = a ^ b
-        xored += str(c)
+    xored = get_xor(extend_R, K)
     
     # Passa pelas S-Boxes e aplica P4
     s0s1 = s_boxes(xored[:4], xored[4:])
@@ -157,8 +158,16 @@ def ecb_encrypt(mensagem, chave):
     result = " ".join(cypher_blocks)
     return result
 
-def cbc_encrypt():
-    pass
+def cbc_encrypt(mensagem, chave, vi):
+    blocks = mensagem.split()
+    cypher_blocks = []
+    for bits in blocks:
+        xored = get_xor(bits, vi)
+        vi = sdes_encrypt(xored,chave)
+        cypher_blocks.append(vi)
+    
+    result = " ".join(cypher_blocks)
+    return result
 
 bloco_de_dados = "11010111"
 chave = "1010000010"
