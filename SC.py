@@ -1,3 +1,9 @@
+import os
+
+# apenas para limpar o menu :D
+def clear():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
 def perm10(bits):
     P10 = [3,  5,  2,  7,  4,  10,  1,  9,  8,  6]
     result = ""
@@ -169,22 +175,121 @@ def cbc_encrypt(mensagem, chave, vi):
     result = " ".join(cypher_blocks)
     return result
 
-bloco_de_dados = "11010111"
-chave = "1010000010"
-mensagem = "11010111 01101100 10111010 11110000"
-vetor_inicialização = "01010101"
+def cbc_decrypt(mensagem, chave, vi):
+    blocks = mensagem.split()
+    plain_blocks = []
+    old_vi = vi
+    for block in blocks:
+        dec_block = sdes_decrypt(block, chave)
+        plain = get_xor(dec_block, old_vi)
+        plain_blocks.append(plain)
+        old_vi = block
 
-print("Parte 1 --------------")
-print(f"Bloco de dados = {bloco_de_dados}\nChave = {chave}")
+    return " ".join(plain_blocks)
 
-cypher_text = sdes_encrypt(bloco_de_dados, chave)
-print(f"Bloco de dados cifrado = {cypher_text}")
+def bits_list_to_hex(bits_list):
+    ret = ""
+    for b in bits_list:
+        ret += format(int(b, 2), '02X') + ' '
+    return ret
 
-decypher_text = sdes_decrypt(cypher_text, chave)
-print(f"Bloco de dados decifrado = {decypher_text}")
+def show_menu():
+    print("\n=== Simulador S-DES ===")
+    print("1) Criptografar (ECB)")
+    print("2) Descriptografar (ECB)")
+    print("3) Criptografar (CBC)")
+    print("4) Descriptografar (CBC)")
+    print("5) Executar testes padrão")
+    print("6) Sair")
 
-print("\nParte 2 --------------")
-print(f"Mensagem = {mensagem}")
+def main():
+    while True:
+        show_menu()
+        escolha = input("Escolha uma opção: ").strip()
+        
+        if escolha == '1':
+            msg = input("Mensagem (bits separados por espaço): ")
+            chave = input("Chave (10 bits): ")
+            ct = ecb_encrypt(msg, chave)
+            out_bin = ct
+            out_hex    = bits_list_to_hex(ct.split())
+            print(f"\nECB cifrado — BINÁRIO: {out_bin}")
+            print(f"ECB cifrado —   HEXA: {out_hex}")
+        
+        elif escolha == '2':
+            ct = input("Texto cifrado ECB: ")
+            chave = input("Chave (10 bits): ")
+            pt = ' '.join(sdes_decrypt(b, chave) for b in ct.split())
+            out_bin = pt
+            out_hex    = bits_list_to_hex(pt.split())
+            print(f"\nECB decifrado — BINÁRIO: {out_bin}")
+            print(f"ECB decifrado —   HEXA: {out_hex}")
+        
+        elif escolha == '3':
+            msg = input("Mensagem (bits separados por espaço): ")
+            chave = input("Chave (10 bits): ")
+            vi = input("Vetor de inicialização (8 bits): ")
+            ct = cbc_encrypt(msg, chave, vi)
+            out_bin = ct
+            out_hex    = bits_list_to_hex(ct.split())
+            print(f"\nCBC cifrado — BINÁRIO: {out_bin}")
+            print(f"CBC cifrado —   HEXA: {out_hex}")
+            print(f"VI usado: {vi}")
+        
+        elif escolha == '4':
+            ct = input("Texto cifrado CBC: ")
+            chave = input("Chave (10 bits): ")
+            vi = input("VI original (8 bits): ")
+            pt = cbc_decrypt(ct, chave, vi)
+            out_bin = pt
+            out_hex    = bits_list_to_hex(pt.split())
+            print(f"\nCBC decifrado — BINÁRIO: {out_bin}")
+            print(f"CBC decifrado —   HEXA: {out_hex}")
+        
+        elif escolha == '5':
+            run_default_tests()
+        
+        elif escolha == '6':
+            print("\nSaindo...")
+            break
+        
+        else:
+            print("\nOpção inválida. Tente novamente.")
+        
+        input("\nPressione ENTER para continuar...")
+        clear()
 
-cypher_mensage = ecb_encrypt(mensagem, chave)
-print(f"Mensagem cifrada por ECB = {cypher_mensage}")
+
+# testes padrões do trabalho
+def run_default_tests():
+    bloco_de_dados = "11010111"
+    chave           = "1010000010"
+    mensagem        = "11010111 01101100 10111010 11110000"
+    vetor_inicialização = "01010101"
+
+    print("=== Testes Padrões ===\n")
+    print("Parte 1 --------------")
+    print(f"Bloco de dados = {bloco_de_dados}\nChave = {chave}")
+
+    cypher_text = sdes_encrypt(bloco_de_dados, chave)
+    hex_ct      = bits_list_to_hex(cypher_text.split())
+    print(f"Bloco de dados cifrado   — BINÁRIO: {cypher_text} | HEXA: {hex_ct}")
+
+    decypher_text = sdes_decrypt(cypher_text, chave)
+    hex_dec       = bits_list_to_hex(decypher_text.split())
+    print(f"Bloco de dados decifrado — BINÁRIO: {decypher_text} | HEXA: {hex_dec}")
+
+    print("\nParte 2 --------------")
+    print(f"Mensagem = {mensagem}")
+
+    cypher_message = ecb_encrypt(mensagem, chave)
+    hex_msg        = bits_list_to_hex(cypher_message.split())
+    print(f"Mensagem cifrada por ECB — BINÁRIO: {cypher_message} | HEXA: {hex_msg}")
+
+    cypher_message = cbc_encrypt(mensagem, chave, vetor_inicialização)
+    hex_msg        = bits_list_to_hex(cypher_message.split())
+    print(f"Mensagem cifrada por CBC — BINÁRIO: {cypher_message} | HEXA: {hex_msg}")
+
+
+if __name__ == "__main__":
+    main()
